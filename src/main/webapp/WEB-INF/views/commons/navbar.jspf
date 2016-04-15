@@ -1,0 +1,17 @@
+<nav role="navigation" class="navbar navbar-default">
+    <div>
+        <a class="navbar-brand">LoyaltyPlantBank</a>
+    </div>
+    <div class="navbar-collapse">
+        <ul class="nav navbar-nav">
+            <li><a href="${pageContext.request.contextPath}/accounts"><span class="glyphicon glyphicon-usd"></span> Accounts list</a></li>
+            <li><a href="${pageContext.request.contextPath}/account"><span class="glyphicon glyphicon-plus"></span> Add new account</a></li>
+            <li><a href="${pageContext.request.contextPath}/transfers"><span class="glyphicon glyphicon-sort"></span> Transfer money</a></li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+            <li><a href="#"><span class="glyphicon glyphicon-off"></span> Logout</a></li>
+        </ul>
+    </div>
+</nav>
+
+

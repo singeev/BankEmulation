@@ -1,0 +1,17 @@
+@CHARSET "UTF-8";
+
+.error {
+	font-size: small;
+	color: red;
+	margin-left: 10px;
+}
+
+#newoffer {
+	border-radius: 15px 40px;
+	max-width: 580px;
+	padding: 15px 35px 45px;
+	margin: 0 auto;
+	background-color: #fff;
+	border: 1px solid rgba(0, 0, 0, 0.1);
+	
+}
