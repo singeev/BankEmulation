@@ -97,13 +97,19 @@ public class LoadIntegtationTest {
 
         System.out.println("Finished with requests, calculating results...");
         // checking results
+        int summBalance = getSummBalance();
+        assertEquals("Should be 2000000.", 2000000, summBalance);
+        System.out.println("All good: money wasn't lost!");
+    }
+
+    // method to get summarize accounts balance
+    private int getSummBalance() {
         int summBalance = 0;
         list = accountsService.getAllAccounts();
         for (Account account : list) {
             summBalance += account.getBalance();
         }
-        assertEquals("Should be 2000000.", 2000000, summBalance);
-        System.out.println("All good: money wasn't lost!");
+        return summBalance;
     }
 
     //WORKS: makes POST requests in for loop without multithreading.
@@ -120,11 +126,7 @@ public class LoadIntegtationTest {
         }
         System.out.println("Finished with requests, calculating results...");
         // checking results
-        int summBalance = 0;
-        list = accountsService.getAllAccounts();
-        for (Account account : list) {
-            summBalance += account.getBalance();
-        }
+        int summBalance = getSummBalance();
         assertEquals("Should be 2000000.", 2000000, summBalance);
         System.out.println("All good: money wasn't lost!");
     }
@@ -145,11 +147,7 @@ public class LoadIntegtationTest {
         }
         System.out.println("Finished with requests, calculating results...");
         // checking results
-        int summBalance = 0;
-        list = accountsService.getAllAccounts();
-        for (Account account : list) {
-            summBalance += account.getBalance();
-        }
+        int summBalance = getSummBalance();
         assertEquals("Should be 2000000.", 2000000, summBalance);
         System.out.println("All good: money wasn't lost!");
     }
@@ -170,11 +168,7 @@ public class LoadIntegtationTest {
                 .asVoid();
         System.out.println("Finished with requests, calculating results...");
         // checking results
-        int summBalance = 0;
-        list = accountsService.getAllAccounts();
-        for (Account account : list) {
-            summBalance += account.getBalance();
-        }
+        int summBalance = getSummBalance();
         assertEquals("Should be 2000000.", 2000000, summBalance);
         System.out.println("All good: money wasn't lost!");
     }
