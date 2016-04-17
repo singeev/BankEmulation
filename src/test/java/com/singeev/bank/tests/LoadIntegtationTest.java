@@ -98,6 +98,7 @@ public class LoadIntegtationTest {
         System.out.println("Finished with requests, calculating results...");
         // checking results
         int summBalance = 0;
+        list = accountsService.getAllAccounts();
         for (Account account : list) {
             summBalance += account.getBalance();
         }
@@ -120,6 +121,7 @@ public class LoadIntegtationTest {
         System.out.println("Finished with requests, calculating results...");
         // checking results
         int summBalance = 0;
+        list = accountsService.getAllAccounts();
         for (Account account : list) {
             summBalance += account.getBalance();
         }
@@ -144,6 +146,7 @@ public class LoadIntegtationTest {
         System.out.println("Finished with requests, calculating results...");
         // checking results
         int summBalance = 0;
+        list = accountsService.getAllAccounts();
         for (Account account : list) {
             summBalance += account.getBalance();
         }
@@ -168,6 +171,7 @@ public class LoadIntegtationTest {
         System.out.println("Finished with requests, calculating results...");
         // checking results
         int summBalance = 0;
+        list = accountsService.getAllAccounts();
         for (Account account : list) {
             summBalance += account.getBalance();
         }
