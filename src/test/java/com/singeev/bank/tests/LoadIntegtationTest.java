@@ -72,7 +72,7 @@ public class LoadIntegtationTest {
     // WORKS: makes 50 threads pool, makes 50 threads, make 1000 POST requests in each thread via for loop
     // waits 2 minutes for termination
     @Test
-    public void isRequestWorking() throws InterruptedException {
+    public void loadTest() throws InterruptedException {
         ExecutorService executorService = Executors.newFixedThreadPool(50);
         for (int i = 0; i < 50; i++) {
             executorService.execute(new Runnable() {
@@ -90,7 +90,7 @@ public class LoadIntegtationTest {
             });
         }
         executorService.shutdown();
-        executorService.awaitTermination(2, TimeUnit.MINUTES);
+        executorService.awaitTermination(5, TimeUnit.MINUTES);
 
         System.out.println("Finished with requests, calculating results...");
         // checking results
@@ -128,7 +128,7 @@ public class LoadIntegtationTest {
     @Test
     @Ignore
     @PerfTest(threads = 50)
-    public void testBloadTest() throws Exception {
+    public void loadTestWithPerfTestLib() throws Exception {
         int count = 0;
         for (int i = 0; i < 1000; i++) {
             int fromid = list.get(rand1.nextInt(19)).getId();
@@ -152,7 +152,7 @@ public class LoadIntegtationTest {
     // in this implementation - without multithreading
     @Test
     @Ignore
-    public void test() {
+    public void loadTestWithDavidWebbLib() {
         int fromid = list.get(rand1.nextInt(19)).getId();
         int toid = list.get(rand2.nextInt(19)).getId();
         int summ = 1000;
