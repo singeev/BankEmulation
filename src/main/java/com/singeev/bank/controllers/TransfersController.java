@@ -129,6 +129,11 @@ public class TransfersController {
                 return "transfers";
             }
 
+            if (transaction.getToid() == transaction.getFromid()){
+                model.addAttribute("errMsg13", "Please, choose two different accounts!");
+                return "transfers";
+            }
+
             if (!service.isExists(transaction.getFromid())) {
                 model.addAttribute("errMsg9", "There's no account with ID #" + transaction.getFromid() + "!");
                 return "transfers";

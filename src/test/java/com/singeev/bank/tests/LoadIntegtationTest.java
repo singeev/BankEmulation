@@ -51,7 +51,7 @@ public class LoadIntegtationTest {
     @Before
     public void setUp() throws Exception {
         RestAssured.baseURI = "http://localhost:8080/transfer";
-//        RestAssured.baseURI = "http://localhost:8080/lpbank-1.0/transfer";
+        // RestAssured.baseURI = "http://localhost:8080/lpbank-1.0/transfer";
         // RestAssured.baseURI = "http://159.122.77.197:8080/lpbank-1.0/transfer";
 
         // clean DataBase before tests
@@ -68,9 +68,10 @@ public class LoadIntegtationTest {
             list = accountsService.getAllAccounts();
         }
         System.out.println("DataBase prepared for test and contains " + list.size() + " accounts.");
+        System.out.println("Summ balance before tests: " + getSummBalance() + "$");
     }
 
-    // WORKS: makes 50 threads pool, makes 50 threads, make 1000 POST requests in each thread via for loop
+    // WORKS: makes 50 threads pool
     // waits 10 minutes for termination
     @Test
     public void loadTest() throws InterruptedException {
@@ -79,9 +80,12 @@ public class LoadIntegtationTest {
             executorService.execute(new Runnable() {
                 @Override
                 public void run() {
-                    for (int j = 0; j < 20; j++) {
+                    for (int j = 0; j < 30; j++) {
                         int fromid = list.get(rand1.nextInt(19)).getId();
-                        int toid = list.get(rand2.nextInt(19)).getId();
+                        int toid;
+                        do {
+                           toid = list.get(rand2.nextInt(19)).getId();
+                        } while (fromid == toid); //to not transfer money from one to the same account!
                         int summ = 1000;
                         given().parameters("fromid", fromid, "toid", toid, "summ", summ)
                                 .when().post().then().assertThat().statusCode(302);
@@ -102,23 +106,16 @@ public class LoadIntegtationTest {
         System.out.println("All good: money wasn't lost!");
     }
 
-    // method to get summarize accounts balance
-    private int getSummBalance() {
-        int summBalance = 0;
-        list = accountsService.getAllAccounts();
-        for (Account account : list) {
-            summBalance += account.getBalance();
-        }
-        return summBalance;
-    }
-
     //WORKS: makes POST requests in for loop without multithreading.
     @Test
     @Ignore
     public void loadWithoutThreads() {
-        for (int i = 0; i < 50; i++) {
+        for (int i = 0; i < 100; i++) {
             int fromid = list.get(rand1.nextInt(19)).getId();
-            int toid = list.get(rand2.nextInt(19)).getId();
+            int toid;
+            do {
+                toid = list.get(rand2.nextInt(19)).getId();
+            } while (fromid == toid); //to not transfer money from one to the same account!
             int summ = 100;
             given().parameters("fromid", fromid, "toid", toid, "summ", summ)
                     .when().post().then().assertThat().statusCode(302);
@@ -139,7 +136,10 @@ public class LoadIntegtationTest {
         int count = 0;
         for (int i = 0; i < 1000; i++) {
             int fromid = list.get(rand1.nextInt(19)).getId();
-            int toid = list.get(rand2.nextInt(19)).getId();
+            int toid;
+            do {
+                toid = list.get(rand2.nextInt(19)).getId();
+            } while (fromid == toid); //to not transfer money from one to the same account!
             int summ = 1;
             given().parameters("fromid", fromid, "toid", toid, "summ", summ)
                     .when().post().then().assertThat().statusCode(302);
@@ -158,7 +158,10 @@ public class LoadIntegtationTest {
     @Ignore
     public void loadTestWithDavidWebbLib() {
         int fromid = list.get(rand1.nextInt(19)).getId();
-        int toid = list.get(rand2.nextInt(19)).getId();
+        int toid;
+        do {
+            toid = list.get(rand2.nextInt(19)).getId();
+        } while (fromid == toid); //to not transfer money from one to the same account!
         int summ = 1000;
         Webb webb = Webb.create();
         webb.post("http://localhost:8080/lpbank-1.0/transfer")
@@ -171,5 +174,15 @@ public class LoadIntegtationTest {
         int summBalance = getSummBalance();
         assertEquals("Should be 2000000.", 2000000, summBalance);
         System.out.println("All good: money wasn't lost!");
+    }
+
+    // method to get summarize accounts balance
+    private int getSummBalance() {
+        int summBalance = 0;
+        list = accountsService.getAllAccounts();
+        for (Account account : list) {
+            summBalance += account.getBalance();
+        }
+        return summBalance;
     }
 }

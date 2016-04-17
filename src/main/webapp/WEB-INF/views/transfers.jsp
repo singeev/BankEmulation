@@ -68,6 +68,7 @@
 		<div style="margin-top: 5px;margin-bottom: -15;"><h4 style="margin-bottom: 0px;color:#C93F1C;">${errMsg10}</h4></div>
 		<div style="margin-top: 5px;margin-bottom: -15;"><h4 style="margin-bottom: 0px;color:#C93F1C;">${errMsg11}</h4></div>
 		<div style="margin-top: 5px;margin-bottom: -15;"><h4 style="margin-bottom: 0px;color:#C93F1C;">${errMsg12}</h4></div>
+		<div style="margin-top: 5px;margin-bottom: -15;"><h4 style="margin-bottom: 0px;color:#C93F1C;">${errMsg13}</h4></div>
 		<sf:errors path="fromid" cssClass="error"></sf:errors>
 		<sf:errors path="toid" cssClass="error"></sf:errors>
 		<sf:errors path="summ" cssClass="error"></sf:errors>
