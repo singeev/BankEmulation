@@ -79,7 +79,7 @@ public class LoadIntegtationTest {
             executorService.execute(new Runnable() {
                 @Override
                 public void run() {
-                    for (int j = 0; j < 100; j++) {
+                    for (int j = 0; j < 20; j++) {
                         int fromid = list.get(rand1.nextInt(19)).getId();
                         int toid = list.get(rand2.nextInt(19)).getId();
                         int summ = 1000;
