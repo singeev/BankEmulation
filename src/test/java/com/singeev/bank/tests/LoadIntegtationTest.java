@@ -50,7 +50,8 @@ public class LoadIntegtationTest {
 
     @Before
     public void setUp() throws Exception {
-        RestAssured.baseURI = "http://localhost:8080/lpbank-1.0/transfer";
+        RestAssured.baseURI = "http://localhost:8080/transfer";
+//        RestAssured.baseURI = "http://localhost:8080/lpbank-1.0/transfer";
         // RestAssured.baseURI = "http://159.122.77.197:8080/lpbank-1.0/transfer";
 
         // clean DataBase before tests
@@ -70,7 +71,7 @@ public class LoadIntegtationTest {
     }
 
     // WORKS: makes 50 threads pool, makes 50 threads, make 1000 POST requests in each thread via for loop
-    // waits 2 minutes for termination
+    // waits 10 minutes for termination
     @Test
     public void loadTest() throws InterruptedException {
         ExecutorService executorService = Executors.newFixedThreadPool(50);
@@ -78,7 +79,7 @@ public class LoadIntegtationTest {
             executorService.execute(new Runnable() {
                 @Override
                 public void run() {
-                    for (int j = 0; j < 1000; j++) {
+                    for (int j = 0; j < 100; j++) {
                         int fromid = list.get(rand1.nextInt(19)).getId();
                         int toid = list.get(rand2.nextInt(19)).getId();
                         int summ = 1000;
@@ -86,11 +87,13 @@ public class LoadIntegtationTest {
                                 .when().post().then().assertThat().statusCode(302);
                         System.out.println("Transferred " + summ + "$ from id[" + fromid + "] to id[" + toid + "].");
                     }
+                    // to see in terminal when one thread finishes his requests
+                    System.out.println("This thread has finished it's job! Waiting for others...");
                 }
             });
         }
         executorService.shutdown();
-        executorService.awaitTermination(5, TimeUnit.MINUTES);
+        executorService.awaitTermination(10, TimeUnit.MINUTES);
 
         System.out.println("Finished with requests, calculating results...");
         // checking results
