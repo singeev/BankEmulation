@@ -47,6 +47,7 @@ public class LoadIntegtationTest {
     List<Account> list;
     Random rand1 = new Random(47);
     Random rand2 = new Random(13);
+    private int tempSummBalance;
 
     @Before
     public void setUp() throws Exception {
@@ -66,6 +67,7 @@ public class LoadIntegtationTest {
             account.setBalance(100000);
             accountsService.updateBalance(account);
             list = accountsService.getAllAccounts();
+            tempSummBalance = getSummBalance();
         }
         System.out.println("DataBase prepared for test and contains " + list.size() + " accounts.");
         System.out.println("Summ balance before tests: " + getSummBalance() + "$");
@@ -76,15 +78,15 @@ public class LoadIntegtationTest {
     @Test
     public void loadTest() throws InterruptedException {
         ExecutorService executorService = Executors.newFixedThreadPool(50);
-        for (int i = 0; i < 50; i++) {
+        for (int i = 0; i < 10; i++) {
             executorService.execute(new Runnable() {
                 @Override
                 public void run() {
-                    for (int j = 0; j < 30; j++) {
+                    for (int j = 0; j < 50; j++) {
                         int fromid = list.get(rand1.nextInt(19)).getId();
                         int toid;
                         do {
-                           toid = list.get(rand2.nextInt(19)).getId();
+                            toid = list.get(rand2.nextInt(19)).getId();
                         } while (fromid == toid); //to not transfer money from one to the same account!
                         int summ = 1000;
                         given().parameters("fromid", fromid, "toid", toid, "summ", summ)
@@ -104,6 +106,62 @@ public class LoadIntegtationTest {
         int summBalance = getSummBalance();
         assertEquals("Should be 2000000.", 2000000, summBalance);
         System.out.println("All good: money wasn't lost!");
+    }
+
+    @Test
+    public void loadTestWithDifferentTypesOfRequests() throws InterruptedException {
+        ExecutorService executorService = Executors.newFixedThreadPool(50);
+        for (int i = 0; i < 10; i++) {
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    Random rand = new Random(13);
+                    int operationType;
+                    int fromid = list.get(rand1.nextInt(19)).getId();
+                    int toid;
+                    do {
+                        toid = list.get(rand2.nextInt(19)).getId();
+                    } while (fromid == toid); //to not transfer money from one to the same account!
+                    int summ = 100;
+
+                    for (int i = 0; i < 50; i++) {
+                        operationType = rand.nextInt(4);
+                        switch (operationType) {
+                            case 1: // transfer
+                                RestAssured.baseURI = "http://localhost:8080/transfer";
+                                given().parameters("fromid", fromid, "toid", toid, "summ", summ)
+                                        .when().post().then().assertThat().statusCode(302);
+                                System.out.println("Transferred " + summ + "$ from id[" + fromid + "] to id[" + toid + "].");
+                                break;
+                            case 2: // add
+                                RestAssured.baseURI = "http://localhost:8080/addfunds";
+                                given().parameters("fromid", 0, "toid", toid, "summ", summ)
+                                        .when().post().then().assertThat().statusCode(302);
+                                changeSummBalance(summ);
+                                System.out.println("Added " + summ + "$ to id[" + toid + "].");
+                                break;
+
+                            case 3: // withdraw
+                                RestAssured.baseURI = "http://localhost:8080/withdraw";
+                                given().parameters("fromid", fromid, "toid", 0, "summ", summ)
+                                        .when().post().then().assertThat().statusCode(302);
+                                changeSummBalance(-summ);
+                                System.out.println("Withdrawed " + summ + "$ from id[" + fromid + "].");
+                                break;
+                        }
+                    }
+                }
+            });
+        }
+        executorService.shutdown();
+        executorService.awaitTermination(10, TimeUnit.MINUTES);
+
+        System.out.println("Finished with requests, calculating results...");
+        // checking results
+        int summBalance = getSummBalance();
+        assertEquals("Balances should be match.", tempSummBalance, summBalance);
+        System.out.println("All good: money wasn't lost!");
+
     }
 
     //WORKS: makes POST requests in for loop without multithreading.
@@ -184,5 +242,9 @@ public class LoadIntegtationTest {
             summBalance += account.getBalance();
         }
         return summBalance;
+    }
+
+    public int changeSummBalance(int summ) {
+        return tempSummBalance += summ;
     }
 }

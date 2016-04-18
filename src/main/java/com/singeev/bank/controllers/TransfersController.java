@@ -26,6 +26,7 @@ public class TransfersController {
 
     // locks pool
     private final static Object[] locks = new Object[lockPoolSize];
+
     static {
         for (int i = 0; i < locks.length; i++) {
             locks[i] = new Object();
@@ -35,7 +36,7 @@ public class TransfersController {
     // check StripedLock Guava later! Looks like it's more handier
 
     // retrieve unic lock for the account
-    private Object getLockById(int id){
+    private Object getLockById(int id) {
         return locks[id % lockPoolSize];
     }
 
@@ -63,12 +64,13 @@ public class TransfersController {
         int addSumm = transaction.getSumm();
         int toid = transaction.getToid();
 
-        if (toid == 0 || addSumm == 0) {
-            model.addAttribute("errMsg1", "Please, fill in all fields!");
-            return "transfers";
-        }
-
         synchronized (getLockById(toid)) {
+
+            if (toid == 0 || addSumm == 0) {
+                model.addAttribute("errMsg1", "Please, fill in all fields!");
+                return "transfers";
+            }
+
             if (!service.isExists(toid)) {
                 model.addAttribute("errMsg2", "There's no account with ID #" + toid + "!");
                 return "transfers";
@@ -103,12 +105,13 @@ public class TransfersController {
         int withdrawSumm = transaction.getSumm();
         int fromid = transaction.getFromid();
 
-        if (fromid == 0 || withdrawSumm == 0) {
-            model.addAttribute("errMsg4", "Please, fill in all fields!");
-            return "transfers";
-        }
-
         synchronized (getLockById(fromid)) {
+
+            if (fromid == 0 || withdrawSumm == 0) {
+                model.addAttribute("errMsg4", "Please, fill in all fields!");
+                return "transfers";
+            }
+
             if (!service.isExists(fromid)) {
                 model.addAttribute("errMsg5", "There's no account with ID #" + fromid + "!");
                 return "transfers";
@@ -151,21 +154,6 @@ public class TransfersController {
         int fromid = transaction.getFromid();
         int toid = transaction.getToid();
 
-        if (toid == 0 || fromid == 0 || transferSumm == 0) {
-            model.addAttribute("errMsg8", "Please, fill in all fields!");
-            return "transfers";
-        }
-
-        if (toid == fromid) {
-            model.addAttribute("errMsg13", "Please, choose two different accounts!");
-            return "transfers";
-        }
-
-        if (transferSumm < 0) {
-            model.addAttribute("errMsg11", "Please, input a positive number!");
-            return "transfers";
-        }
-
         // to avoid DeadLock we'll get locks in ascending order
         int idLock1;
         int idLock2;
@@ -177,8 +165,25 @@ public class TransfersController {
             idLock1 = toid;
             idLock2 = fromid;
         }
+
         synchronized (getLockById(idLock1)) {
             synchronized (getLockById(idLock2)) {
+
+                if (toid == 0 || fromid == 0 || transferSumm == 0) {
+                    model.addAttribute("errMsg8", "Please, fill in all fields!");
+                    return "transfers";
+                }
+
+                if (toid == fromid) {
+                    model.addAttribute("errMsg13", "Please, choose two different accounts!");
+                    return "transfers";
+                }
+
+                if (transferSumm < 0) {
+                    model.addAttribute("errMsg11", "Please, input a positive number!");
+                    return "transfers";
+                }
+
                 if (!service.isExists(fromid)) {
                     model.addAttribute("errMsg9", "There's no account with ID #" + fromid + "!");
                     return "transfers";
