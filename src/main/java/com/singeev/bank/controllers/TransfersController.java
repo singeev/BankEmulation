@@ -2,7 +2,6 @@ package com.singeev.bank.controllers;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -16,15 +15,27 @@ import com.singeev.bank.dao.Account;
 import com.singeev.bank.dao.Transaction;
 import com.singeev.bank.service.AccountsService;
 
-import java.util.concurrent.locks.ReentrantLock;
-
 
 @Controller
 public class TransfersController {
 
     private static Logger logger = Logger.getLogger(TransfersController.class);
-    private static final Object LOCK = new Object[0];
-    private final ReentrantLock lock = new ReentrantLock();
+
+    // how many different locks do you want?
+    private static int lockPoolSize = 30;
+
+    // locks pool
+    private final static Object[] locks = new Object[lockPoolSize];
+    static {
+        for (int i = 0; i < locks.length; i++) {
+            locks[i] = new Object();
+        }
+    }
+
+    // retrieve unic lock for the account
+    private Object getLockById(int id){
+        return locks[id % lockPoolSize];
+    }
 
     @Autowired
     private AccountsService service;
@@ -46,29 +57,34 @@ public class TransfersController {
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE, rollbackFor = Exception.class)
     @RequestMapping(value = "/addfunds", method = RequestMethod.POST)
     public String addFunds(ModelMap model, Transaction transaction) {
-        if (transaction.getToid() == 0 || transaction.getSumm() == 0) {
+
+        int addSumm = transaction.getSumm();
+        int toid = transaction.getToid();
+
+        if (toid == 0 || addSumm == 0) {
             model.addAttribute("errMsg1", "Please, fill in all fields!");
             return "transfers";
         }
 
-        if (!service.isExists(transaction.getToid())) {
-            model.addAttribute("errMsg2", "There's no account with ID #" + transaction.getToid() + "!");
-            return "transfers";
-        }
+        synchronized (getLockById(toid)) {
+            if (!service.isExists(toid)) {
+                model.addAttribute("errMsg2", "There's no account with ID #" + toid + "!");
+                return "transfers";
+            }
 
-        Account account = service.getAccount(transaction.getToid());
-        int balance = account.getBalance();
-        int addSumm = transaction.getSumm();
+            Account account = service.getAccount(toid);
+            int balance = account.getBalance();
 
-        if (addSumm < 0) {
-            model.addAttribute("errMsg3", "If you want to withdraw money, please, use special form below! Or input a positive number!");
-            return "transfers";
+            if (addSumm < 0) {
+                model.addAttribute("errMsg3", "If you want to withdraw money, please, use special form below! Or input a positive number!");
+                return "transfers";
+            }
+            account.setBalance(balance + addSumm);
+            service.updateBalance(account);
+            model.clear();
+            logger.info("Add " + addSumm + "$ to account with id#" + account.getId());
+            return "redirect:accounts";
         }
-        account.setBalance(balance + addSumm);
-        service.updateBalance(account);
-        model.clear();
-        logger.info("Add " + addSumm + "$ to account with id#" + account.getId());
-        return "redirect:accounts";
     }
 
     // method to withdraw money from account
@@ -81,33 +97,38 @@ public class TransfersController {
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE, rollbackFor = Exception.class)
     @RequestMapping(value = "/withdraw", method = RequestMethod.POST)
     public String withdraw(ModelMap model, Transaction transaction) {
-        if (transaction.getFromid() == 0 || transaction.getSumm() == 0) {
+
+        int withdrawSumm = transaction.getSumm();
+        int fromid = transaction.getFromid();
+
+        if (fromid == 0 || withdrawSumm == 0) {
             model.addAttribute("errMsg4", "Please, fill in all fields!");
             return "transfers";
         }
 
-        if (!service.isExists(transaction.getFromid())) {
-            model.addAttribute("errMsg5", "There's no account with ID #" + transaction.getFromid() + "!");
-            return "transfers";
-        }
+        synchronized (getLockById(fromid)) {
+            if (!service.isExists(fromid)) {
+                model.addAttribute("errMsg5", "There's no account with ID #" + fromid + "!");
+                return "transfers";
+            }
 
-        Account account = service.getAccount(transaction.getFromid());
-        int balance = account.getBalance();
-        int withdrawSumm = transaction.getSumm();
+            Account account = service.getAccount(fromid);
+            int balance = account.getBalance();
 
-        if (withdrawSumm < 0) {
-            model.addAttribute("errMsg6", "Please, input a positive number!");
-            return "transfers";
+            if (withdrawSumm < 0) {
+                model.addAttribute("errMsg6", "Please, input a positive number!");
+                return "transfers";
+            }
+            if (balance - withdrawSumm < 0) {
+                model.addAttribute("errMsg7", "Sorry, not enough money on that account! There's only " + account.getBalance() + "$");
+                return "transfers";
+            }
+            account.setBalance(balance - withdrawSumm);
+            service.updateBalance(account);
+            model.clear();
+            logger.info("Withdraw " + withdrawSumm + "$ from account with id#" + account.getId());
+            return "redirect:accounts";
         }
-        if (balance - withdrawSumm < 0) {
-            model.addAttribute("errMsg7", "Sorry, not enough money on that account! There's only " + account.getBalance() + "$");
-            return "transfers";
-        }
-        account.setBalance(balance - withdrawSumm);
-        service.updateBalance(account);
-        model.clear();
-        logger.info("Withdraw " + withdrawSumm + "$ from account with id#" + account.getId());
-        return "redirect:accounts";
     }
 
     // Method to transfer money form one account to another
@@ -123,50 +144,67 @@ public class TransfersController {
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE, rollbackFor = Exception.class)
     @RequestMapping(value = "/transfer", method = RequestMethod.POST)
     public String transfer(ModelMap model, Transaction transaction) {
-        synchronized (LOCK){
-            if (transaction.getToid() == 0 || transaction.getFromid() == 0 || transaction.getSumm() == 0) {
-                model.addAttribute("errMsg8", "Please, fill in all fields!");
-                return "transfers";
+
+        int transferSumm = transaction.getSumm();
+        int fromid = transaction.getFromid();
+        int toid = transaction.getToid();
+
+        if (toid == 0 || fromid == 0 || transferSumm == 0) {
+            model.addAttribute("errMsg8", "Please, fill in all fields!");
+            return "transfers";
+        }
+
+        if (toid == fromid) {
+            model.addAttribute("errMsg13", "Please, choose two different accounts!");
+            return "transfers";
+        }
+
+        if (transferSumm < 0) {
+            model.addAttribute("errMsg11", "Please, input a positive number!");
+            return "transfers";
+        }
+
+        // to avoid DeadLock we'll get locks in ascending order
+        int idLock1;
+        int idLock2;
+
+        if (fromid < toid) {
+            idLock1 = fromid;
+            idLock2 = toid;
+        } else {
+            idLock1 = toid;
+            idLock2 = fromid;
+        }
+        synchronized (getLockById(idLock1)) {
+            synchronized (getLockById(idLock2)) {
+                if (!service.isExists(fromid)) {
+                    model.addAttribute("errMsg9", "There's no account with ID #" + fromid + "!");
+                    return "transfers";
+                }
+
+                if (!service.isExists(toid)) {
+                    model.addAttribute("errMsg10", "There's no account with ID #" + toid + "!");
+                    return "transfers";
+                }
+
+                Account fromAccount = service.getAccount(fromid);
+                Account toAccount = service.getAccount(toid);
+                int balanceFrom = fromAccount.getBalance();
+                int balanceTo = toAccount.getBalance();
+
+                if (balanceFrom - transferSumm < 0) {
+                    model.addAttribute("errMsg12", "Sorry, not enough money on the first account! There's only " + balanceFrom + "$");
+                    return "transfers";
+                }
+
+                fromAccount.setBalance(balanceFrom - transferSumm);
+                service.updateBalance(fromAccount);
+                toAccount.setBalance(balanceTo + transferSumm);
+                service.updateBalance(toAccount);
+                model.clear();
+                logger.info("Transfer " + transferSumm + "$ from account with id#" + fromAccount.getId() + " to account with id#" + toAccount.getId());
+                return "redirect:accounts";
             }
-
-            if (transaction.getToid() == transaction.getFromid()){
-                model.addAttribute("errMsg13", "Please, choose two different accounts!");
-                return "transfers";
-            }
-
-            if (!service.isExists(transaction.getFromid())) {
-                model.addAttribute("errMsg9", "There's no account with ID #" + transaction.getFromid() + "!");
-                return "transfers";
-            }
-
-            if (!service.isExists(transaction.getToid())) {
-                model.addAttribute("errMsg10", "There's no account with ID #" + transaction.getToid() + "!");
-                return "transfers";
-            }
-
-            Account fromAccount = service.getAccount(transaction.getFromid());
-            Account toAccount = service.getAccount(transaction.getToid());
-            int balanceFrom = fromAccount.getBalance();
-            int balanceTo = toAccount.getBalance();
-            int transferSumm = transaction.getSumm();
-
-            if (transferSumm < 0) {
-                model.addAttribute("errMsg11", "Please, input a positive number!");
-                return "transfers";
-            }
-
-            if (balanceFrom - transferSumm < 0) {
-                model.addAttribute("errMsg12", "Sorry, not enough money on the first account! There's only " + balanceFrom + "$");
-                return "transfers";
-            }
-
-            fromAccount.setBalance(balanceFrom - transferSumm);
-            service.updateBalance(fromAccount);
-            toAccount.setBalance(balanceTo + transferSumm);
-            service.updateBalance(toAccount);
-            model.clear();
-            logger.info("Transfer " + transferSumm + "$ from account with id#" + fromAccount.getId() + " to account with id#" + toAccount.getId());
-            return "redirect:accounts";
         }
     }
 }
