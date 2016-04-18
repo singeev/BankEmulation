@@ -32,6 +32,8 @@ public class TransfersController {
         }
     }
 
+    // check StripedLock Guava later! Looks like it's more handier
+
     // retrieve unic lock for the account
     private Object getLockById(int id){
         return locks[id % lockPoolSize];
