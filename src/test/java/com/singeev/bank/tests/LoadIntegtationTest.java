@@ -67,7 +67,6 @@ public class LoadIntegtationTest {
             account.setBalance(100000);
             accountsService.updateBalance(account);
             list = accountsService.getAllAccounts();
-            tempSummBalance = getSummBalance();
         }
         System.out.println("DataBase prepared for test and contains " + list.size() + " accounts.");
         System.out.println("Summ balance before tests: " + getSummBalance() + "$");
@@ -110,6 +109,7 @@ public class LoadIntegtationTest {
 
     @Test
     public void loadTestWithDifferentTypesOfRequests() throws InterruptedException {
+        tempSummBalance = getSummBalance();
         ExecutorService executorService = Executors.newFixedThreadPool(50);
         for (int i = 0; i < 10; i++) {
             executorService.execute(new Runnable() {
@@ -244,7 +244,7 @@ public class LoadIntegtationTest {
         return summBalance;
     }
 
-    public int changeSummBalance(int summ) {
+    public synchronized int changeSummBalance(int summ) {
         return tempSummBalance += summ;
     }
 }
