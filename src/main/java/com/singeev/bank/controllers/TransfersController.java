@@ -71,6 +71,11 @@ public class TransfersController {
                 return "transfers";
             }
 
+            if (addSumm < 0) {
+                model.addAttribute("errMsg3", "If you want to withdraw money, please, use special form below! Or input a positive number!");
+                return "transfers";
+            }
+
             if (!service.isExists(toid)) {
                 model.addAttribute("errMsg2", "There's no account with ID #" + toid + "!");
                 return "transfers";
@@ -79,10 +84,6 @@ public class TransfersController {
             Account account = service.getAccount(toid);
             int balance = account.getBalance();
 
-            if (addSumm < 0) {
-                model.addAttribute("errMsg3", "If you want to withdraw money, please, use special form below! Or input a positive number!");
-                return "transfers";
-            }
             account.setBalance(balance + addSumm);
             service.updateBalance(account);
             model.clear();
@@ -112,6 +113,11 @@ public class TransfersController {
                 return "transfers";
             }
 
+            if (withdrawSumm < 0) {
+                model.addAttribute("errMsg6", "Please, input a positive number!");
+                return "transfers";
+            }
+
             if (!service.isExists(fromid)) {
                 model.addAttribute("errMsg5", "There's no account with ID #" + fromid + "!");
                 return "transfers";
@@ -120,10 +126,6 @@ public class TransfersController {
             Account account = service.getAccount(fromid);
             int balance = account.getBalance();
 
-            if (withdrawSumm < 0) {
-                model.addAttribute("errMsg6", "Please, input a positive number!");
-                return "transfers";
-            }
             if (balance - withdrawSumm < 0) {
                 model.addAttribute("errMsg7", "Sorry, not enough money on that account! There's only " + account.getBalance() + "$");
                 return "transfers";

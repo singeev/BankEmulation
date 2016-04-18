@@ -12,6 +12,7 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.sql.DataSource;
 
@@ -47,7 +48,7 @@ public class LoadIntegtationTest {
     List<Account> list;
     Random rand1 = new Random(47);
     Random rand2 = new Random(13);
-    private int tempSummBalance;
+    private final AtomicInteger tempSummBalance = new AtomicInteger(0);
 
     @Before
     public void setUp() throws Exception {
@@ -109,7 +110,7 @@ public class LoadIntegtationTest {
 
     @Test
     public void loadTestWithDifferentTypesOfRequests() throws InterruptedException {
-        tempSummBalance = getSummBalance();
+        tempSummBalance.addAndGet(getSummBalance());
         ExecutorService executorService = Executors.newFixedThreadPool(50);
         for (int i = 0; i < 10; i++) {
             executorService.execute(new Runnable() {
@@ -124,7 +125,7 @@ public class LoadIntegtationTest {
                     } while (fromid == toid); //to not transfer money from one to the same account!
                     int summ = 100;
 
-                    for (int i = 0; i < 50; i++) {
+                    for (int i1 = 0; i1 < 50; i1++) {
                         operationType = rand.nextInt(4);
                         switch (operationType) {
                             case 1: // transfer
@@ -137,7 +138,7 @@ public class LoadIntegtationTest {
                                 RestAssured.baseURI = "http://localhost:8080/addfunds";
                                 given().parameters("fromid", 0, "toid", toid, "summ", summ)
                                         .when().post().then().assertThat().statusCode(302);
-                                changeSummBalance(summ);
+                                tempSummBalance.addAndGet(summ);
                                 System.out.println("Added " + summ + "$ to id[" + toid + "].");
                                 break;
 
@@ -145,7 +146,7 @@ public class LoadIntegtationTest {
                                 RestAssured.baseURI = "http://localhost:8080/withdraw";
                                 given().parameters("fromid", fromid, "toid", 0, "summ", summ)
                                         .when().post().then().assertThat().statusCode(302);
-                                changeSummBalance(-summ);
+                                tempSummBalance.addAndGet(-summ);
                                 System.out.println("Withdrawed " + summ + "$ from id[" + fromid + "].");
                                 break;
                         }
@@ -159,7 +160,7 @@ public class LoadIntegtationTest {
         System.out.println("Finished with requests, calculating results...");
         // checking results
         int summBalance = getSummBalance();
-        assertEquals("Balances should be match.", tempSummBalance, summBalance);
+        assertEquals("Balances should be match.", tempSummBalance.get(), summBalance);
         System.out.println("All good: money wasn't lost!");
 
     }
@@ -242,9 +243,5 @@ public class LoadIntegtationTest {
             summBalance += account.getBalance();
         }
         return summBalance;
-    }
-
-    public synchronized int changeSummBalance(int summ) {
-        return tempSummBalance += summ;
     }
 }
