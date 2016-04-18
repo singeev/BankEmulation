@@ -78,11 +78,11 @@ public class LoadIntegtationTest {
     @Test
     public void loadTest() throws InterruptedException {
         ExecutorService executorService = Executors.newFixedThreadPool(50);
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             executorService.execute(new Runnable() {
                 @Override
                 public void run() {
-                    for (int j = 0; j < 50; j++) {
+                    for (int j = 0; j < 10; j++) {
                         int fromid = list.get(rand1.nextInt(19)).getId();
                         int toid;
                         do {
@@ -112,7 +112,7 @@ public class LoadIntegtationTest {
     public void loadTestWithDifferentTypesOfRequests() throws InterruptedException {
         tempSummBalance.addAndGet(getSummBalance());
         ExecutorService executorService = Executors.newFixedThreadPool(50);
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             executorService.execute(new Runnable() {
                 @Override
                 public void run() {
@@ -123,9 +123,9 @@ public class LoadIntegtationTest {
                     do {
                         toid = list.get(rand2.nextInt(19)).getId();
                     } while (fromid == toid); //to not transfer money from one to the same account!
-                    int summ = 100;
+                    int summ = 10;
 
-                    for (int i1 = 0; i1 < 50; i1++) {
+                    for (int j = 0; j < 10; j++) {
                         operationType = rand.nextInt(4);
                         switch (operationType) {
                             case 1: // transfer

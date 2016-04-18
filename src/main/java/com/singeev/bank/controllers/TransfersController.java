@@ -22,7 +22,7 @@ public class TransfersController {
     private static Logger logger = Logger.getLogger(TransfersController.class);
 
     // how many different locks do you want?
-    private static int lockPoolSize = 30;
+    private static int lockPoolSize = 1;
 
     // locks pool
     private final static Object[] locks = new Object[lockPoolSize];
