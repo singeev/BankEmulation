@@ -165,19 +165,17 @@ public class TransfersController {
         int toid = transaction.getToid();
 
         // to avoid DeadLock we'll get locks in ascending order
-        int idLock1;
-        int idLock2;
+        int lockIndex1 = fromid % lockPoolSize;
+        int lockIndex2 = toid % lockPoolSize;
 
-        if (fromid < toid) {
-            idLock1 = fromid;
-            idLock2 = toid;
-        } else {
-            idLock1 = toid;
-            idLock2 = fromid;
+        if (lockIndex1 > lockIndex2) {
+            int temp = lockIndex1;
+            lockIndex1 = lockIndex2;
+            lockIndex2 = temp;
         }
 
-        synchronized (getLockById(idLock1)) {
-            synchronized (getLockById(idLock2)) {
+        synchronized (locks[lockIndex1]) {
+            synchronized (locks[lockIndex2]) {
 
                 if (toid == 0 || fromid == 0 || transferSumm == 0) {
                     model.addAttribute("errMsg8", "Please, fill in all fields!");
