@@ -36,8 +36,10 @@ import org.springframework.test.context.web.WebAppConfiguration;
 @WebAppConfiguration
 public class LoadIntegtationTest {
 
-    // @Rule
-    // public ContiPerfRule i = new ContiPerfRule();
+    /*
+     @Rule
+     public ContiPerfRule i = new ContiPerfRule();
+    */
 
     @Autowired
     private AccountsService accountsService;
@@ -62,7 +64,7 @@ public class LoadIntegtationTest {
         System.out.println("DataBase cleared!");
 
         // create 20 accounts with identical balance
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 1000; i++) {
             accountsService.createAccount(new Account("--NameForTest--", "000-TEST-000"));
             Account account = accountsService.getAllAccounts().get(i);
             account.setBalance(100000);
@@ -73,8 +75,7 @@ public class LoadIntegtationTest {
         System.out.println("Summ balance before tests: " + getSummBalance() + "$");
     }
 
-    // WORKS: makes 50 threads pool
-    // waits 10 minutes for termination
+    // WORKS: makes 50 threads pool, waits 10 minutes for termination
     @Test
     public void loadTest() throws InterruptedException {
         ExecutorService executorService = Executors.newFixedThreadPool(50);
@@ -211,8 +212,10 @@ public class LoadIntegtationTest {
         System.out.println("All good: money wasn't lost!");
     }
 
-    // WORKS as well. Based on http://hgoebl.github.io/DavidWebb/ library.
-    // in this implementation - without multithreading
+    /*
+     WORKS as well. Based on http://hgoebl.github.io/DavidWebb/ library.
+     in this implementation - without multithreading
+    */
     @Test
     @Ignore
     public void loadTestWithDavidWebbLib() {

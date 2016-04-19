@@ -69,11 +69,13 @@ public class AccountsController {
 	@Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE, rollbackFor = Exception.class)
 	@RequestMapping(value = "/update-account", method = RequestMethod.POST)
 	public String updateAccount(@Valid Account account, BindingResult result) {
-		// if the account was deleted by other user while our user
-		// was filling in the form - hi'll be redirecting to refreshed
-		// accounts list without an attempt to create new account in the DB.
-		// Not very good, maybe it's better to inform user and offer him
-		// to create a new account. Do that later.
+		/*
+		 if the account was deleted by other user while our user
+		 was filling in the form - he'll be redirecting to refreshed
+		 accounts list without an attempt to create new account in the DB.
+		 Not very good, maybe it's better to inform user and offer him
+		 to create a new account. Do that later.
+		*/
 		if (result.hasErrors()) {
 			return "editaccount";
 		}

@@ -27,11 +27,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-
-// Test class with Mock instead of real AccountsService
-// it's possible to test controllers without connected DataBase
-
-//@formatter:off
+/*
+ Test class with Mock instead of real AccountsService
+ it's possible to test controllers without connected DataBase
+*/
 @ActiveProfiles("dev")
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {

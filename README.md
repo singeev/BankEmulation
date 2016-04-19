@@ -42,6 +42,17 @@ CREATE TABLE `accounts` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8;
 ```
+
+To fill the table with some data fast, use this SQL command:
+```
+INSERT INTO `accounts` VALUES
+(4,'Clark Kent','SUPER-999',799000),
+(5,'Tony Stark','00-IRON-00',93340),
+(6,'Bruce Wane','11-BAT-11',40000),
+(7,'Thor','JUST-GOD',300260),
+(8,'Piter Parker','33-SPIDER-33',101000),
+(9,'HULK','0-GREEN-0',50000);
+```
 After that you should check your DB's URL in DataSource settings in my code, to adapt in to your particular environment.</br>
 
 You need to have runnig instance of a Tomcat web-server to deploy application you will get on the next step.

@@ -36,7 +36,6 @@ import com.singeev.bank.service.AccountsService;
 
 
 // Test class with real AccountsService interacting with test MySQL DataBase
-//@formatter:off
 
 @ActiveProfiles("dev")
 @ContextConfiguration(locations = {

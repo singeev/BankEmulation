@@ -22,7 +22,7 @@ public class TransfersController {
     private static Logger logger = Logger.getLogger(TransfersController.class);
 
     // how many different locks do you want?
-    private static int lockPoolSize = 1;
+    private static int lockPoolSize = 6;
 
     // locks pool
     private final static Object[] locks = new Object[lockPoolSize];
@@ -43,20 +43,24 @@ public class TransfersController {
     @Autowired
     private AccountsService service;
 
-    // show page with transaction forms and
-    // pass there a blank Transaction object
+    /*
+     show page with transaction forms and
+     pass there a blank Transaction object
+    */
     @RequestMapping(value = "/transfers", method = RequestMethod.GET)
     public String showTransfersPage(Model model) {
         model.addAttribute("transaction", new Transaction());
         return "transfers";
     }
 
-    // method to add money to account
-    // check if account exists, if summ < 0, if form not blank
-    // Three times go to DB:
-    // 1. check if account with this ID is exists
-    // 2. get account
-    // 3. update balance (add money)
+    /*
+     method to add money to account
+     check if account exists, if summ < 0, if form not blank
+     Three times go to DB:
+     1. check if account with this ID is exists
+     2. get account
+     3. update balance (add money)
+    */
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE, rollbackFor = Exception.class)
     @RequestMapping(value = "/addfunds", method = RequestMethod.POST)
     public String addFunds(ModelMap model, Transaction transaction) {
@@ -92,13 +96,15 @@ public class TransfersController {
         }
     }
 
-    // method to withdraw money from account
-    // check if account exists, if summ < 0,
-    // if there's enough money on account, if form not blank
-    // Three times go to DB:
-    // 1. check if account with this ID is exists
-    // 2. get account
-    // 3. update balance (withdraw money)
+    /*
+     method to withdraw money from account
+     check if account exists, if summ < 0,
+     if there's enough money on account, if form not blank
+     Three times go to DB:
+     1. check if account with this ID is exists
+     2. get account
+     3. update balance (withdraw money)
+    */
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE, rollbackFor = Exception.class)
     @RequestMapping(value = "/withdraw", method = RequestMethod.POST)
     public String withdraw(ModelMap model, Transaction transaction) {
@@ -138,16 +144,18 @@ public class TransfersController {
         }
     }
 
-    // Method to transfer money form one account to another
-    // check if accounts exists, if summ < 0,
-    // if form not blank, if there's enough money on the first account
-    // Four times go to DB:
-    // 1. check if accounts with this ID is exists (1st)
-    // 2. check if accounts with this ID is exists (2nd)
-    // 5. get 1st account
-    // 6. get 2nd account
-    // 7. update 1st accounts balance (withdraw money)
-    // 8. update 2nd accounts balance (add money)
+    /*
+     Method to transfer money form one account to another
+     check if accounts exists, if summ < 0,
+     if form not blank, if there's enough money on the first account
+     Four times go to DB:
+     1. check if accounts with this ID is exists (1st)
+     2. check if accounts with this ID is exists (2nd)
+     5. get 1st account
+     6. get 2nd account
+     7. update 1st accounts balance (withdraw money)
+     8. update 2nd accounts balance (add money)
+    */
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE, rollbackFor = Exception.class)
     @RequestMapping(value = "/transfer", method = RequestMethod.POST)
     public String transfer(ModelMap model, Transaction transaction) {
