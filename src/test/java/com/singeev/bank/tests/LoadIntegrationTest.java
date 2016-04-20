@@ -34,7 +34,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
         "classpath:service-context.xml",
         "classpath:integrdatasource.xml"})
 @WebAppConfiguration
-public class LoadIntegtationTest {
+public class LoadIntegrationTest {
 
     /*
      @Rule
@@ -51,6 +51,7 @@ public class LoadIntegtationTest {
     Random rand1 = new Random(47);
     Random rand2 = new Random(13);
     private final AtomicInteger tempSummBalance = new AtomicInteger(0);
+    private int startSummBalance;
 
     @Before
     public void setUp() throws Exception {
@@ -71,8 +72,9 @@ public class LoadIntegtationTest {
             accountsService.updateBalance(account);
             list = accountsService.getAllAccounts();
         }
+        startSummBalance = getSummBalance();
         System.out.println("DataBase prepared for test and contains " + list.size() + " accounts.");
-        System.out.println("Summ balance before tests: " + getSummBalance() + "$");
+        System.out.println("Summ balance before tests: " + startSummBalance + "$");
     }
 
     // WORKS: makes 50 threads pool, waits 10 minutes for termination
@@ -105,7 +107,7 @@ public class LoadIntegtationTest {
         System.out.println("Finished with requests, calculating results...");
         // checking results
         int summBalance = getSummBalance();
-        assertEquals("Should be 2000000.", 2000000, summBalance);
+        assertEquals("Should be 2000000.", startSummBalance, summBalance);
         System.out.println("All good: money wasn't lost!");
     }
 
@@ -184,7 +186,7 @@ public class LoadIntegtationTest {
         System.out.println("Finished with requests, calculating results...");
         // checking results
         int summBalance = getSummBalance();
-        assertEquals("Should be 2000000.", 2000000, summBalance);
+        assertEquals("Should be 2000000.", startSummBalance, summBalance);
         System.out.println("All good: money wasn't lost!");
     }
 
@@ -208,7 +210,7 @@ public class LoadIntegtationTest {
         System.out.println("Finished with requests, calculating results...");
         // checking results
         int summBalance = getSummBalance();
-        assertEquals("Should be 2000000.", 2000000, summBalance);
+        assertEquals("Should be 2000000.", startSummBalance, summBalance);
         System.out.println("All good: money wasn't lost!");
     }
 
@@ -234,7 +236,7 @@ public class LoadIntegtationTest {
         System.out.println("Finished with requests, calculating results...");
         // checking results
         int summBalance = getSummBalance();
-        assertEquals("Should be 2000000.", 2000000, summBalance);
+        assertEquals("Should be 2000000.", startSummBalance, summBalance);
         System.out.println("All good: money wasn't lost!");
     }
 

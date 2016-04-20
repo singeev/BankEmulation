@@ -1,5 +1,6 @@
 package com.singeev.bank.controllers;
 
+import com.google.common.util.concurrent.Striped;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -15,6 +16,11 @@ import com.singeev.bank.dao.Account;
 import com.singeev.bank.dao.Transaction;
 import com.singeev.bank.service.AccountsService;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+
 
 @Controller
 public class TransfersController {
@@ -22,23 +28,7 @@ public class TransfersController {
     private static Logger logger = Logger.getLogger(TransfersController.class);
 
     // how many different locks do you want?
-    private static int lockPoolSize = 6;
-
-    // locks pool
-    private final static Object[] locks = new Object[lockPoolSize];
-
-    static {
-        for (int i = 0; i < locks.length; i++) {
-            locks[i] = new Object();
-        }
-    }
-
-    // check StripedLock Guava later! Looks like it's more handier
-
-    // retrieve unic lock for the account
-    private Object getLockById(int id) {
-        return locks[id % lockPoolSize];
-    }
+    Striped<Lock> lockStriped = Striped.lock(20);
 
     @Autowired
     private AccountsService service;
@@ -68,7 +58,9 @@ public class TransfersController {
         int addSumm = transaction.getSumm();
         int toid = transaction.getToid();
 
-        synchronized (getLockById(toid)) {
+        List<Lock> locks = (List<Lock>) lockStriped.bulkGet(new ArrayList<>(Arrays.asList(toid)));
+        locks.get(0).lock();
+        try {
 
             if (toid == 0 || addSumm == 0) {
                 model.addAttribute("errMsg1", "Please, fill in all fields!");
@@ -93,6 +85,8 @@ public class TransfersController {
             model.clear();
             logger.info("Add " + addSumm + "$ to account with id#" + account.getId());
             return "redirect:accounts";
+        } finally {
+            locks.get(0).unlock();
         }
     }
 
@@ -112,7 +106,9 @@ public class TransfersController {
         int withdrawSumm = transaction.getSumm();
         int fromid = transaction.getFromid();
 
-        synchronized (getLockById(fromid)) {
+        List<Lock> locks = (List<Lock>) lockStriped.bulkGet(new ArrayList<>(Arrays.asList(fromid)));
+        locks.get(0).lock();
+        try {
 
             if (fromid == 0 || withdrawSumm == 0) {
                 model.addAttribute("errMsg4", "Please, fill in all fields!");
@@ -141,6 +137,8 @@ public class TransfersController {
             model.clear();
             logger.info("Withdraw " + withdrawSumm + "$ from account with id#" + account.getId());
             return "redirect:accounts";
+        } finally {
+            locks.get(0).unlock();
         }
     }
 
@@ -164,18 +162,18 @@ public class TransfersController {
         int fromid = transaction.getFromid();
         int toid = transaction.getToid();
 
-        // to avoid DeadLock we'll get locks in ascending order
-        int lockIndex1 = fromid % lockPoolSize;
-        int lockIndex2 = toid % lockPoolSize;
+        /*
+        Returns the stripes that correspond to the passed objects,
+        in ascending order.
+        Thus, threads that use the stripes in the order returned by this method
+        are guaranteed to not deadlock each other.
+         */
 
-        if (lockIndex1 > lockIndex2) {
-            int temp = lockIndex1;
-            lockIndex1 = lockIndex2;
-            lockIndex2 = temp;
-        }
-
-        synchronized (locks[lockIndex1]) {
-            synchronized (locks[lockIndex2]) {
+        List<Lock> locks = (List<Lock>) lockStriped.bulkGet(new ArrayList<>(Arrays.asList(fromid, toid)));
+        locks.get(0).lock();
+        try {
+            locks.get(1).lock();
+            try {
 
                 if (toid == 0 || fromid == 0 || transferSumm == 0) {
                     model.addAttribute("errMsg8", "Please, fill in all fields!");
@@ -219,7 +217,11 @@ public class TransfersController {
                 model.clear();
                 logger.info("Transfer " + transferSumm + "$ from account with id#" + fromAccount.getId() + " to account with id#" + toAccount.getId());
                 return "redirect:accounts";
+            } finally {
+                locks.get(1).unlock();
             }
+        } finally {
+            locks.get(0).unlock();
         }
     }
 }

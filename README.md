@@ -22,6 +22,7 @@ Used technologies and frameworks:
 - Maven
 - Tomcat 7
 - Spring Framefork, Spring MVC
+- Guava
 - servlets, JSP, JSPF, JSTL
 - HTML, CSS, Bootstrap
 - MySQL, JDBC
@@ -55,9 +56,10 @@ INSERT INTO `accounts` VALUES
 ```
 After that you should check your DB's URL in DataSource settings in my code, to adapt in to your particular environment.</br>
 
-You need to have runnig instance of a Tomcat web-server to deploy application you will get on the next step.
+You need to have running instance of a Tomcat web-server to deploy application you will get on the next step.
 
-Finally, you need to assemble WAR file with `mvn clean install` command in your terminal. Before that you need to ensure that tests in [this test class: LoadIntegtationTest.java](https://github.com/singeev/LoyaltyPlantBank/blob/master/src/test/java/com/singeev/bank/tests/LoadIntegtationTest.java) has `@Ignored` annotation! This test loads running web site you haven't run yet. 
+Finally, you need to assemble WAR file with `mvn clean install` command in your terminal. Before that you need to ensure that tests in [this test class: LoadIntegrationTest.java](https://github.com/singeev/LoyaltyPlantBank/blob/master/src/test/java/com/singeev/bank/tests/LoadIntegrationTest.java) has `@Ignored` annotation! This test loads running web site you haven't run yet.</br>
+Other option to skip tests during maven building is to run it with command `mvn clean install -Dmaven.test.skip=true`
 
 **Summarize install and run**:
 - two MySQL data bases (mybank and mybanktest) with one table (accounts) in each;
