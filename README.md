@@ -58,7 +58,7 @@ After that you should check your DB's URL in DataSource settings in my code, to 
 
 You need to have running instance of a Tomcat web-server to deploy application you will get on the next step.
 
-Finally, you need to assemble WAR file with `mvn clean install` command in your terminal. Before that you need to ensure that tests in [this test class: LoadIntegrationTest.java](https://github.com/singeev/LoyaltyPlantBank/blob/master/src/test/java/com/singeev/bank/tests/LoadIntegrationTest.java) has `@Ignored` annotation! This test loads running web site you haven't run yet.</br>
+Finally, you need to assemble WAR file with `mvn clean install` command in your terminal. Before that you need to ensure that tests in [this test class: LoadIntegrationTest.java](https://github.com/singeev/LoyaltyPlantBank/blob/master/src/test/java/com/singeev/bank/tests/LoadIntegrationTest.java) has `@Ignored` annotation! These test loads running web site you haven't run yet.</br>
 Other option to skip tests during maven building is to run it with command `mvn clean install -Dmaven.test.skip=true`
 
 **Summarize install and run**:
