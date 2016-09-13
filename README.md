@@ -1,4 +1,4 @@
-# LoyaltyPlantBank
+# BankEmulation
 This application is a banking system emulation. </br>
 It has a web UI showing info about banking accounts: account's id, owner's name, account number and actual balance.
 
